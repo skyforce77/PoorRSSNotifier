@@ -30,13 +30,15 @@ public class SettingsPanel extends JPanel{
 
 	public static JTable table;
 	public static SettingsPanel instance;
+	public static RSSTableModel model;
 	
 	public SettingsPanel() {
 		instance = this;
 		GroupLayout layout = new GroupLayout(this);
 		setLayout(layout);
 		
-		table = new JTable(new RSSTableModel());
+		model = new RSSTableModel();
+		table = new JTable(model);
 		table.getTableHeader().setReorderingAllowed(false);
 		table.getTableHeader().setResizingAllowed(false);
 		table.addMouseListener(new MouseListener() {
@@ -86,7 +88,7 @@ public class SettingsPanel extends JPanel{
 						return;
 					}
 					url.setText("");
-					instance.repaint();
+					model.fireTableDataChanged();
 				}
 			}
 		});
@@ -117,7 +119,7 @@ public class SettingsPanel extends JPanel{
 						((CopyOnWriteArrayList<RSSEntry>)DataBase.getValue("feeds")).remove(s);
 						DataBase.save();
 					}
-					instance.repaint();
+					model.fireTableDataChanged();
 				}
 			});
 			add(delete);

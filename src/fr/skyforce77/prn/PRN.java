@@ -102,18 +102,20 @@ public class PRN {
 						try {
 							URL url = new URL(entry.getURL());
 							Feed feed = FeedParser.parse(url);
+							System.out.println("Updating "+feed.getHeader().getTitle()+"...");
 							int items = feed.getItemCount();
 							for (int i = 0; i < items; i++) {
 								FeedItem item = feed.getItem(i);
 								if(!DataBase.hasPermission(item.getGUID())) {
-									Notification not = new Notification(feed.getHeader().getTitle()+" - "+item.getTitle(), item.getDescriptionAsText()+"\n\n"+item.getLink(), "");
+									Notification not = new Notification(feed.getHeader().getTitle(), "<b>"+item.getTitle()+"</b>\n\n"+item.getDescriptionAsText()+"\n\n"+item.getLink(), "");
 									not.setIcon(icon.getPixbuf());
-									not.setTimeout(Notification.NOTIFY_EXPIRES_DEFAULT);
+									not.setTimeout(Notification.NOTIFY_EXPIRES_NEVER);
 									not.show();
 									DataBase.addPermission(item.getGUID());
-									Thread.sleep(10000l);
+									Thread.sleep(20000l);
 								}
 							}
+							System.out.println("Updated");
 						} catch (Exception e) {
 							e.printStackTrace();
 						}
