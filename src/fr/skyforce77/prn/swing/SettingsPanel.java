@@ -2,6 +2,7 @@ package fr.skyforce77.prn.swing;
 
 import it.sauronsoftware.feed4j.FeedParser;
 import it.sauronsoftware.feed4j.bean.Feed;
+import it.sauronsoftware.feed4j.bean.FeedItem;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -21,6 +22,7 @@ import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 
+import fr.skyforce77.prn.PRN;
 import fr.skyforce77.prn.save.DataBase;
 import fr.skyforce77.prn.save.RSSEntry;
 
@@ -80,6 +82,10 @@ public class SettingsPanel extends JPanel{
 						RSSEntry entry = new RSSEntry(url.getText());
 						URL url = new URL(entry.getURL());
 						Feed feed = FeedParser.parse(url);
+						FeedItem item = feed.getItem(0);
+						PRN.notify(feed, item);
+						DataBase.setValue(entry.getURL(), item.getGUID());
+						DataBase.save();
 						((CopyOnWriteArrayList<RSSEntry>)DataBase.getValue("feeds")).add(entry);
 						DataBase.save();
 						JOptionPane.showMessageDialog(instance, feed.getHeader().getTitle()+" ajouté", "Ajout", JOptionPane.INFORMATION_MESSAGE);

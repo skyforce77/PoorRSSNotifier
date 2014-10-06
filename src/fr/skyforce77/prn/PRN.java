@@ -37,7 +37,6 @@ public class PRN {
 		DataBase.load();
 		if(DataBase.getValue("feeds") == null) {
 			CopyOnWriteArrayList<RSSEntry> entries = new CopyOnWriteArrayList<RSSEntry>();
-			entries.add(new RSSEntry("http://feeds2.feedburner.com/LeJournalduGeek"));
 			DataBase.setValue("feeds", entries);
 		}
 		if(!new File(getDirectory(), "ressources/textures/").exists()) {
@@ -106,15 +105,20 @@ public class PRN {
 							int items = feed.getItemCount();
 							for (int i = 0; i < items; i++) {
 								FeedItem item = feed.getItem(i);
-								if(!DataBase.hasPermission(item.getGUID())) {
-									Notification not = new Notification(feed.getHeader().getTitle(), "<b>"+item.getTitle()+"</b>\n\n"+item.getDescriptionAsText()+"\n\n"+item.getLink(), "");
-									not.setIcon(icon.getPixbuf());
-									not.setTimeout(Notification.NOTIFY_EXPIRES_NEVER);
-									not.show();
-									DataBase.addPermission(item.getGUID());
-									Thread.sleep(20000l);
+								if((DataBase.getValue(entry.getURL()) != null && DataBase.getValue(entry.getURL()).equals(item.getGUID()))
+										|| DataBase.hasPermission(item.getGUID())) {
+									i = items;
+								} else {
+									PRN.notify(feed, item);
+									try {
+										Thread.sleep(10000l);
+									} catch (InterruptedException e) {
+										e.printStackTrace();
+									}
 								}
 							}
+							DataBase.setValue(entry.getURL(), feed.getItem(0).getGUID());
+							DataBase.save();
 							System.out.println("Updated");
 						} catch (Exception e) {
 							e.printStackTrace();
@@ -128,6 +132,13 @@ public class PRN {
 				}
 			};
 		}.start();
+	}
+	
+	public static void notify(Feed feed, FeedItem item) {
+		Notification not = new Notification(feed.getHeader().getTitle(), "<b>"+item.getTitle()+"</b>\n\n"+item.getDescriptionAsText()+"\n\n"+item.getLink(), "");
+		not.setIcon(icon.getPixbuf());
+		not.setTimeout(Notification.NOTIFY_EXPIRES_NEVER);
+		not.show();
 	}
 
 	public static File getDirectory() {
