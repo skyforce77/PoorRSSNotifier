@@ -85,7 +85,6 @@ public class SettingsPanel extends JPanel{
 						FeedItem item = feed.getItem(0);
 						PRN.notify(feed, item);
 						DataBase.setValue(entry.getURL(), item.getGUID());
-						DataBase.save();
 						((CopyOnWriteArrayList<RSSEntry>)DataBase.getValue("feeds")).add(entry);
 						DataBase.save();
 						JOptionPane.showMessageDialog(instance, feed.getHeader().getTitle()+" ajouté", "Ajout", JOptionPane.INFORMATION_MESSAGE);

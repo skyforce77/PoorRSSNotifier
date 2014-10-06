@@ -5,7 +5,6 @@ import it.sauronsoftware.feed4j.bean.Feed;
 import it.sauronsoftware.feed4j.bean.FeedItem;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -64,6 +63,14 @@ public class PRN {
 		icon = new StatusIcon();
 		frame = new SettingsFrame();
 
+		try {
+			File f = new File(getDirectory(), "ressources/textures/rss.png");
+			icon.setFromPixbuf(new Pixbuf(f.getPath()));
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		icon.setTooltipText(title);
+		
 		icon.connect(new StatusIcon.PopupMenu() {
 			@Override
 			public void onPopupMenu(StatusIcon arg0, int arg1, int arg2) {
@@ -82,13 +89,6 @@ public class PRN {
 
 		new Thread("GTK-Main") {
 			public void run() {
-				try {
-					File f = new File(getDirectory(), "ressources/textures/rss.png");
-					icon.setFromPixbuf(new Pixbuf(f.getPath()));
-				} catch (FileNotFoundException e) {
-					e.printStackTrace();
-				}
-				icon.setTooltipText(title);
 				Gtk.main();
 			};
 		}.start();
@@ -105,8 +105,7 @@ public class PRN {
 							int items = feed.getItemCount();
 							for (int i = 0; i < items; i++) {
 								FeedItem item = feed.getItem(i);
-								if((DataBase.getValue(entry.getURL()) != null && DataBase.getValue(entry.getURL()).equals(item.getGUID()))
-										|| DataBase.hasPermission(item.getGUID())) {
+								if(DataBase.getValue(entry.getURL()) != null && DataBase.getValue(entry.getURL()).equals(item.getGUID())) {
 									i = items;
 								} else {
 									PRN.notify(feed, item);
@@ -137,8 +136,8 @@ public class PRN {
 	public static void notify(Feed feed, FeedItem item) {
 		Notification not = new Notification(feed.getHeader().getTitle(), "<b>"+item.getTitle()+"</b>\n\n"+item.getDescriptionAsText()+"\n\n"+item.getLink(), "");
 		not.setIcon(icon.getPixbuf());
-		not.setTimeout(Notification.NOTIFY_EXPIRES_NEVER);
 		not.show();
+		System.out.println("New item: "+item.getTitle());
 	}
 
 	public static File getDirectory() {
