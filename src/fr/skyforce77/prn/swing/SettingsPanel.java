@@ -9,6 +9,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.net.URL;
+import java.util.Date;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import javax.swing.GroupLayout;
@@ -18,10 +19,12 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
+import javax.swing.JSlider;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 
+import fr.skyforce77.prn.FeedItemInfo;
 import fr.skyforce77.prn.PRN;
 import fr.skyforce77.prn.save.DataBase;
 import fr.skyforce77.prn.save.RSSEntry;
@@ -30,13 +33,17 @@ public class SettingsPanel extends JPanel{
 
 	private static final long serialVersionUID = 3861075847304452437L;
 
-	public static JTable table;
-	public static SettingsPanel instance;
-	public static RSSTableModel model;
+	public JTable table;
+	public SettingsPanel instance;
+	public RSSTableModel model;
+	public GroupLayout layout;
+	public JScrollPane tablepane;
+	public JButton add;
+	public JSlider updatetime;
 	
 	public SettingsPanel() {
 		instance = this;
-		GroupLayout layout = new GroupLayout(this);
+		layout = new GroupLayout(this);
 		setLayout(layout);
 		
 		model = new RSSTableModel();
@@ -67,12 +74,12 @@ public class SettingsPanel extends JPanel{
 				}
 			}
 		});
-		JScrollPane tablepane = new JScrollPane(table);
+		tablepane = new JScrollPane(table);
 		
 		final JTextField url = new JTextField();
 		url.setToolTipText("RSS url");
 		
-		JButton add = new JButton("Ajouter");
+		add = new JButton("Add");
 		add.addActionListener(new ActionListener() {
 			@SuppressWarnings("unchecked")
 			@Override
@@ -83,11 +90,11 @@ public class SettingsPanel extends JPanel{
 						URL url = new URL(entry.getURL());
 						Feed feed = FeedParser.parse(url);
 						FeedItem item = feed.getItem(0);
-						PRN.notify(feed, item);
-						DataBase.setValue(entry.getURL(), item.getGUID());
+						DataBase.setValue(entry.getURL(), new Date().getTime());
 						((CopyOnWriteArrayList<RSSEntry>)DataBase.getValue("feeds")).add(entry);
 						DataBase.save();
-						JOptionPane.showMessageDialog(instance, feed.getHeader().getTitle()+" ajouté", "Ajout", JOptionPane.INFORMATION_MESSAGE);
+						JOptionPane.showMessageDialog(instance, feed.getHeader().getTitle()+" added", "Add", JOptionPane.INFORMATION_MESSAGE);
+						PRN.notify(new FeedItemInfo(feed, item));
 					} catch(Exception e1) {
 						JOptionPane.showMessageDialog(instance, "Une erreur est survenue.\nL'url semble incorrecte", "Erreur", JOptionPane.ERROR_MESSAGE);
 						return;
@@ -98,17 +105,25 @@ public class SettingsPanel extends JPanel{
 			}
 		});
 		
+		updatetime = new JSlider(5, 365, 60);
+		updatetime.setMinorTickSpacing(30);
+        updatetime.setMajorTickSpacing(60);
+        updatetime.setPaintTicks(true);
+        updatetime.setPaintLabels(true);
+		
 		layout.setVerticalGroup(
 				layout.createSequentialGroup()
 				.addComponent(tablepane)
 				.addGroup(layout.createParallelGroup()
 						.addComponent(url, 30, 30, 40)
-						.addComponent(add, 30, 30, 40)));
+						.addComponent(add, 30, 30, 40))
+				.addComponent(updatetime, 40, 50, 60));
 
 		layout.setHorizontalGroup(
 				layout.createParallelGroup()
 				.addComponent(tablepane)
-				.addGroup(layout.createSequentialGroup().addComponent(url).addComponent(add)));
+				.addGroup(layout.createSequentialGroup().addComponent(url).addComponent(add))
+				.addComponent(updatetime));
 	}
 	
 	public class RSSPopupMenu extends JPopupMenu {

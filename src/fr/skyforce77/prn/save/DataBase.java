@@ -59,7 +59,7 @@ public class DataBase implements Serializable {
 
     public static void save() {
         try {
-            FileOutputStream bos = new FileOutputStream(new File(PRN.getDirectory(), "database"));
+            FileOutputStream bos = new FileOutputStream(new File(PRN.getDirectory(), "feed-database"));
             ObjectOutput out = new ObjectOutputStream(bos);
             out.writeObject(map);
             out.writeObject(perm);
@@ -72,7 +72,7 @@ public class DataBase implements Serializable {
 
     @SuppressWarnings("unchecked")
     public static void load() {
-        File f = new File(PRN.getDirectory(), "database");
+        File f = new File(PRN.getDirectory(), "feed-database");
         try {
             if (!f.exists()) {
                 f.createNewFile();

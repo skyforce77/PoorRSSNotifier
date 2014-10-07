@@ -11,7 +11,7 @@ public class RSSTableModel extends AbstractTableModel {
 
 	private static final long serialVersionUID = -282416444344794124L;
 
-	private final String[] columns = {"Nom","Url"};
+	private final String[] columns = {"Name","Url"};
 	
 	@SuppressWarnings("unchecked")
 	public int getRowCount() {

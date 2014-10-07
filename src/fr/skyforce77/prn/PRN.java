@@ -9,6 +9,8 @@ import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import javax.swing.JOptionPane;
@@ -28,8 +30,9 @@ public class PRN {
 	public static StatusIcon icon;
 	public static String title = "PoorRSSNotifier";
 	public static SettingsFrame frame;
+	private final static ArrayList<FeedItemInfo> torender = new ArrayList<>();
 
-	public static void main(String[] args) {
+	public static void main(final String[] args) {
 		if(!getDirectory().exists()) {
 			getDirectory().mkdirs();
 		}
@@ -58,86 +61,121 @@ public class PRN {
 				e.printStackTrace();
 			}
 		}
-		Gtk.init(args);
-		Notify.init(title);
-		icon = new StatusIcon();
-		frame = new SettingsFrame();
-
-		try {
-			File f = new File(getDirectory(), "ressources/textures/rss.png");
-			icon.setFromPixbuf(new Pixbuf(f.getPath()));
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		icon.setTooltipText(title);
 		
-		icon.connect(new StatusIcon.PopupMenu() {
-			@Override
-			public void onPopupMenu(StatusIcon arg0, int arg1, int arg2) {
-				int i = JOptionPane.showConfirmDialog(null, "Voulez vous vraiment quitter "+title+"?", "Quitter", JOptionPane.YES_NO_OPTION);
-				if(i == JOptionPane.YES_OPTION)
-					System.exit(0);
-			}
-		});
-
-		icon.connect(new StatusIcon.Activate() {
-			@Override
-			public void onActivate(StatusIcon arg0) {
-				frame.setVisible(true);
-			}
-		});
+		frame = new SettingsFrame();
 
 		new Thread("GTK-Main") {
 			public void run() {
+				Gtk.init(args);
+				Notify.init(title);
+				icon = new StatusIcon();
+				icon.setTooltipText(title);
+				
+				icon.connect(new StatusIcon.PopupMenu() {
+					@Override
+					public void onPopupMenu(StatusIcon arg0, int arg1, int arg2) {
+						int i = JOptionPane.showConfirmDialog(null, "Do you want to quit "+title+"?", "Quit", JOptionPane.YES_NO_OPTION);
+						if(i == JOptionPane.YES_OPTION)
+							System.exit(0);
+					}
+				});
+
+				icon.connect(new StatusIcon.Activate() {
+					@Override
+					public void onActivate(StatusIcon arg0) {
+						frame.setVisible(true);
+					}
+				});
+				try {
+					File f = new File(getDirectory(), "ressources/textures/rss.png");
+					icon.setFromPixbuf(new Pixbuf(f.getPath()));
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
 				Gtk.main();
 			};
 		}.start();
 
-		new Thread("Notify-Main") {
+		new Thread("RSS-Update") {
 			@SuppressWarnings("unchecked")
 			public void run() {
+				long wait = 0;
 				while(!Thread.interrupted()) {
 					for(RSSEntry entry : (CopyOnWriteArrayList<RSSEntry>)DataBase.getValue("feeds")) {
 						try {
 							URL url = new URL(entry.getURL());
 							Feed feed = FeedParser.parse(url);
+							Long lastupdate = (Long)(DataBase.getValue(entry.getURL()));
 							System.out.println("Updating "+feed.getHeader().getTitle()+"...");
 							int items = feed.getItemCount();
 							for (int i = 0; i < items; i++) {
 								FeedItem item = feed.getItem(i);
-								if(DataBase.getValue(entry.getURL()) != null && DataBase.getValue(entry.getURL()).equals(item.getGUID())) {
-									i = items;
-								} else {
-									PRN.notify(feed, item);
-									try {
-										Thread.sleep(10000l);
-									} catch (InterruptedException e) {
-										e.printStackTrace();
+								FeedItemInfo itemi = new FeedItemInfo(feed, item);
+								if(lastupdate > itemi.getPubDate().getTime()) {
+									if(lastupdate > itemi.getModDate().getTime()) {
+										i = items;
+									} else {
+										itemi.setUpdate(true);
+										torender.add(itemi);
+										System.out.println("Found item update: "+item.getTitle());
 									}
+								} else {
+									torender.add(itemi);
+									System.out.println("Found new item: "+item.getTitle());
 								}
 							}
-							DataBase.setValue(entry.getURL(), feed.getItem(0).getGUID());
+							DataBase.setValue(entry.getURL(), new Date().getTime());
 							DataBase.save();
-							System.out.println("Updated");
+							System.out.println("Up to date");
 						} catch (Exception e) {
 							e.printStackTrace();
 						}
 					}
 					try {
-						Thread.sleep(600000l);
+						while(wait < frame.panel.updatetime.getValue()*60000) {
+							Thread.sleep(10l);
+							wait+=10;
+						}
 					} catch (InterruptedException e) {
 						e.printStackTrace();
 					}
 				}
 			};
 		}.start();
+		
+		new Thread("Notify-Timed") {
+			public void run() {
+				while(!Thread.interrupted()) {
+					if(torender.size() > 0 && torender.get(0) != null) {
+						PRN.notify(torender.get(0));
+						torender.remove(0);
+						try {
+							Thread.sleep(10000l);
+						} catch (InterruptedException e) {
+							e.printStackTrace();
+						}
+					} else {
+						try {
+							Thread.sleep(100l);
+						} catch (InterruptedException e) {
+							e.printStackTrace();
+						}
+					}
+				}
+			}
+		}.start();
 	}
 	
-	public static void notify(Feed feed, FeedItem item) {
-		Notification not = new Notification(feed.getHeader().getTitle(), "<b>"+item.getTitle()+"</b>\n\n"+item.getDescriptionAsText()+"\n\n"+item.getLink(), "");
+	public static void notify(FeedItemInfo itemi) {
+		Notification not = null;
+		if(itemi.isUpdate()) {
+			not = new Notification(itemi.getFeed().getHeader().getTitle(), "<b>[Item update]</b>\n\n"+itemi.getItem().getTitle()+"\n\n"+itemi.getItem().getLink(), "");
+		} else {
+			not = new Notification(itemi.getFeed().getHeader().getTitle(), "<b>"+itemi.getItem().getTitle()+"</b>\n\n"+itemi.getItem().getDescriptionAsText()+"\n\n"+itemi.getItem().getLink(), "");
+		}
 		not.setIcon(icon.getPixbuf());
 		not.show();
-		System.out.println("New item: "+item.getTitle());
+		System.out.println("Displayed item: "+itemi.getItem().getTitle());
 	}
 
 	public static File getDirectory() {
@@ -151,4 +189,5 @@ public class PRN {
 			return new File(System.getProperty("user.home"), "/.PoorRSSNotifier");
 		return new File(System.getProperty("user.dir"), "/.PoorRSSNotifier");
 	}
+	
 }
