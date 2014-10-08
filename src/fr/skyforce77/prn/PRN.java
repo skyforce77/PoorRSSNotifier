@@ -190,4 +190,16 @@ public class PRN {
 		return new File(System.getProperty("user.dir"), "/.PoorRSSNotifier");
 	}
 	
+	public static String getOS() {
+		String OS = System.getProperty("os.name").toUpperCase();
+		if (OS.contains("WIN"))
+			return "windows";
+		else if (OS.contains("MAC"))
+			return "mac";
+		else if (OS.contains("NUX"))
+			return "linux";
+		else
+			return "wtf";
+	}
+	
 }
