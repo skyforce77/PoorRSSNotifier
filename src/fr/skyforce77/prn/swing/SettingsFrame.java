@@ -5,6 +5,7 @@ import java.io.File;
 
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
+import javax.swing.JTabbedPane;
 
 import fr.skyforce77.prn.PRN;
 
@@ -12,9 +13,12 @@ public class SettingsFrame extends JFrame{
 
 	private static final long serialVersionUID = -8346087794455011856L;
 	
-	public final SettingsPanel panel = new SettingsPanel();
+	public final RSSPanel rsspanel = new RSSPanel();
+	public final SettingsPanel settingspanel = new SettingsPanel();
 
 	public SettingsFrame() {
+		JTabbedPane tabbedpane = new JTabbedPane();
+		
 		setTitle("Settings");
 		setLocationRelativeTo(null);
 		setIconImage(new ImageIcon(new File(PRN.getDirectory(), "/ressources/textures/rss.png").getPath()).getImage());
@@ -22,6 +26,9 @@ public class SettingsFrame extends JFrame{
 		setSize(new Dimension(400, 500));
 		setEnabled(true);
 		
-		add(panel);
+		tabbedpane.addTab("RSS", rsspanel);
+		tabbedpane.addTab("Global", settingspanel);
+		
+		add(tabbedpane);
 	}
 }

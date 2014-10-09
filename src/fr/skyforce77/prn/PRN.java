@@ -5,9 +5,6 @@ import it.sauronsoftware.feed4j.bean.Feed;
 import it.sauronsoftware.feed4j.bean.FeedItem;
 
 import java.io.File;
-import java.io.FileOutputStream;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Date;
@@ -41,26 +38,6 @@ public class PRN {
 			CopyOnWriteArrayList<RSSEntry> entries = new CopyOnWriteArrayList<RSSEntry>();
 			DataBase.setValue("feeds", entries);
 		}
-		if(!new File(getDirectory(), "ressources/textures/").exists()) {
-			try {
-				File tdir = new File(getDirectory(), "ressources/textures/");
-				tdir.mkdirs();
-				File ic = new File(tdir, "rss.png");
-				ic.createNewFile();
-				InputStream in = PRN.class.getResourceAsStream("/ressources/textures/rss.png");
-				OutputStream out = new FileOutputStream(ic);
-				byte[] buffer = new byte[1024];
-				int len = in.read(buffer);
-				while (len != -1) {
-				    out.write(buffer, 0, len);
-				    len = in.read(buffer);
-				}
-				in.close();
-				out.close();
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-		}
 		
 		frame = new SettingsFrame();
 
@@ -92,6 +69,7 @@ public class PRN {
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
+				Gtk.setProgramName(title);
 				Gtk.main();
 			};
 		}.start();
@@ -99,8 +77,14 @@ public class PRN {
 		new Thread("RSS-Update") {
 			@SuppressWarnings("unchecked")
 			public void run() {
-				long wait = 0;
+				try {
+					Thread.sleep(1000l);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
 				while(!Thread.interrupted()) {
+					long wait = 0;
+					IconManager.setIcon("rss-update");
 					for(RSSEntry entry : (CopyOnWriteArrayList<RSSEntry>)DataBase.getValue("feeds")) {
 						try {
 							URL url = new URL(entry.getURL());
@@ -126,15 +110,15 @@ public class PRN {
 							}
 							DataBase.setValue(entry.getURL(), new Date().getTime());
 							DataBase.save();
-							System.out.println("Up to date");
 						} catch (Exception e) {
 							e.printStackTrace();
 						}
 					}
+					IconManager.setIcon("rss");
 					try {
-						while(wait < frame.panel.updatetime.getValue()*60000) {
-							Thread.sleep(10l);
-							wait+=10;
+						while(wait < frame.settingspanel.updatetime.getValue()*60000) {
+							Thread.sleep(1000l);
+							wait+=1000;
 						}
 					} catch (InterruptedException e) {
 						e.printStackTrace();
@@ -145,10 +129,18 @@ public class PRN {
 		
 		new Thread("Notify-Timed") {
 			public void run() {
+				try {
+					Thread.sleep(1000l);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
 				while(!Thread.interrupted()) {
 					if(torender.size() > 0 && torender.get(0) != null) {
+						IconManager.setIcon("rss-notify");
 						PRN.notify(torender.get(0));
 						torender.remove(0);
+						if(!(torender.size() > 0))
+							IconManager.setIcon("rss");
 						try {
 							Thread.sleep(10000l);
 						} catch (InterruptedException e) {
@@ -156,7 +148,7 @@ public class PRN {
 						}
 					} else {
 						try {
-							Thread.sleep(100l);
+							Thread.sleep(10000l);
 						} catch (InterruptedException e) {
 							e.printStackTrace();
 						}
