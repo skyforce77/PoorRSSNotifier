@@ -12,12 +12,11 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 import javax.swing.JOptionPane;
 
-import org.gnome.gdk.Pixbuf;
 import org.gnome.gtk.Gtk;
 import org.gnome.gtk.StatusIcon;
-import org.gnome.notify.Notification;
 import org.gnome.notify.Notify;
 
+import fr.skyforce77.prn.notify.Notification;
 import fr.skyforce77.prn.save.DataBase;
 import fr.skyforce77.prn.save.RSSEntry;
 import fr.skyforce77.prn.swing.SettingsFrame;
@@ -41,11 +40,12 @@ public class PRN {
 		
 		frame = new SettingsFrame();
 
+		Gtk.init(args);
+		Notify.init(title);
+		icon = new StatusIcon();
+		
 		new Thread("GTK-Main") {
 			public void run() {
-				Gtk.init(args);
-				Notify.init(title);
-				icon = new StatusIcon();
 				icon.setTooltipText(title);
 				
 				icon.connect(new StatusIcon.PopupMenu() {
@@ -63,12 +63,6 @@ public class PRN {
 						frame.setVisible(true);
 					}
 				});
-				try {
-					File f = new File(getDirectory(), "ressources/textures/rss.png");
-					icon.setFromPixbuf(new Pixbuf(f.getPath()));
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
 				Gtk.setProgramName(title);
 				Gtk.main();
 			};
@@ -77,11 +71,6 @@ public class PRN {
 		new Thread("RSS-Update") {
 			@SuppressWarnings("unchecked")
 			public void run() {
-				try {
-					Thread.sleep(1000l);
-				} catch (InterruptedException e) {
-					e.printStackTrace();
-				}
 				while(!Thread.interrupted()) {
 					long wait = 0;
 					IconManager.setIcon("rss-update");
@@ -96,13 +85,7 @@ public class PRN {
 								FeedItem item = feed.getItem(i);
 								FeedItemInfo itemi = new FeedItemInfo(feed, item);
 								if(lastupdate > itemi.getPubDate().getTime()) {
-									if(lastupdate > itemi.getModDate().getTime()) {
-										i = items;
-									} else {
-										itemi.setUpdate(true);
-										torender.add(itemi);
-										System.out.println("Found item update: "+item.getTitle());
-									}
+									i = items;
 								} else {
 									torender.add(itemi);
 									System.out.println("Found new item: "+item.getTitle());
@@ -129,11 +112,6 @@ public class PRN {
 		
 		new Thread("Notify-Timed") {
 			public void run() {
-				try {
-					Thread.sleep(1000l);
-				} catch (InterruptedException e) {
-					e.printStackTrace();
-				}
 				while(!Thread.interrupted()) {
 					if(torender.size() > 0 && torender.get(0) != null) {
 						IconManager.setIcon("rss-notify");
@@ -161,13 +139,12 @@ public class PRN {
 	public static void notify(FeedItemInfo itemi) {
 		Notification not = null;
 		if(itemi.isUpdate()) {
-			not = new Notification(itemi.getFeed().getHeader().getTitle(), "<b>[Item update]</b>\n\n"+itemi.getItem().getTitle()+"\n\n"+itemi.getItem().getLink(), "");
+			not = new Notification(itemi.getFeed().getHeader().getTitle(), "<b>[Item update]</b>\n\n"+itemi.getItem().getTitle()+"\n\n"+itemi.getItem().getLink());
 		} else {
-			not = new Notification(itemi.getFeed().getHeader().getTitle(), "<b>"+itemi.getItem().getTitle()+"</b>\n\n"+itemi.getItem().getDescriptionAsText()+"\n\n"+itemi.getItem().getLink(), "");
+			not = new Notification(itemi.getFeed().getHeader().getTitle(), "<b>"+itemi.getItem().getTitle()+"</b>\n\n"+itemi.getItem().getDescriptionAsText()+"\n\n"+itemi.getItem().getLink());
 		}
-		not.setIcon(icon.getPixbuf());
+		not.setIcon(new File(getDirectory(), "/resources/textures/rss.png").getPath());
 		not.show();
-		System.out.println("Displayed item: "+itemi.getItem().getTitle());
 	}
 
 	public static File getDirectory() {
