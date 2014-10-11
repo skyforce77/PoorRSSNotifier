@@ -21,7 +21,7 @@ public class SettingsFrame extends JFrame{
 		
 		setTitle("Settings");
 		setLocationRelativeTo(null);
-		setIconImage(new ImageIcon(new File(PRN.getDirectory(), "/ressources/textures/rss.png").getPath()).getImage());
+		setIconImage(new ImageIcon(new File(PRN.getDirectory(), "/resources/textures/rss.png").getPath()).getImage());
 		setMinimumSize(new Dimension(300, 200));
 		setSize(new Dimension(400, 500));
 		setEnabled(true);

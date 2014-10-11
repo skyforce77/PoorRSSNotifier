@@ -23,8 +23,8 @@ import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 
-import fr.skyforce77.prn.FeedItemInfo;
 import fr.skyforce77.prn.PRN;
+import fr.skyforce77.prn.rss.FeedItemInfo;
 import fr.skyforce77.prn.save.DataBase;
 import fr.skyforce77.prn.save.RSSEntry;
 

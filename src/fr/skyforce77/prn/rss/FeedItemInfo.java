@@ -1,4 +1,4 @@
-package fr.skyforce77.prn;
+package fr.skyforce77.prn.rss;
 
 import it.sauronsoftware.feed4j.bean.Feed;
 import it.sauronsoftware.feed4j.bean.FeedItem;

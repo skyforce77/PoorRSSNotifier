@@ -1,7 +1,5 @@
 package fr.skyforce77.prn.notify;
 
-import java.io.IOException;
-
 import fr.skyforce77.prn.PRN;
 
 public class Notification {
@@ -36,13 +34,7 @@ public class Notification {
 	}
 	
 	public void show() {
-		if(PRN.getOS().equals("linux")) {
-			try {
-				Runtime.getRuntime().exec(new String[]{"notify-send","--icon="+icon,title,text});
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}
+		PRN.server.show(this);
 	}
 	
 }
