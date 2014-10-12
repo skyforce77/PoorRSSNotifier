@@ -32,6 +32,7 @@ public class PRN {
 
 		if(DataBase.getValue("feeds") == null) {
 			CopyOnWriteArrayList<RSSEntry> entries = new CopyOnWriteArrayList<RSSEntry>();
+			entries.add(new RSSEntry("http://feeds.launchpad.net/poor-rss-notifier/announcements.atom"));
 			DataBase.setValue("feeds", entries);
 		}
 

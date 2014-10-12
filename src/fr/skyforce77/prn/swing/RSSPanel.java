@@ -2,7 +2,6 @@ package fr.skyforce77.prn.swing;
 
 import it.sauronsoftware.feed4j.FeedParser;
 import it.sauronsoftware.feed4j.bean.Feed;
-import it.sauronsoftware.feed4j.bean.FeedItem;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -23,8 +22,6 @@ import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 
-import fr.skyforce77.prn.PRN;
-import fr.skyforce77.prn.rss.FeedItemInfo;
 import fr.skyforce77.prn.save.DataBase;
 import fr.skyforce77.prn.save.RSSEntry;
 
@@ -87,13 +84,12 @@ public class RSSPanel extends JPanel{
 						RSSEntry entry = new RSSEntry(url.getText());
 						URL url = new URL(entry.getURL());
 						Feed feed = FeedParser.parse(url);
-						FeedItem item = feed.getItem(0);
 						DataBase.setValue(entry.getURL(), new Date().getTime());
 						((CopyOnWriteArrayList<RSSEntry>)DataBase.getValue("feeds")).add(entry);
 						DataBase.save();
 						JOptionPane.showMessageDialog(instance, feed.getHeader().getTitle()+" added", "Add", JOptionPane.INFORMATION_MESSAGE);
-						PRN.server.show(new FeedItemInfo(feed, item));
 					} catch(Exception e1) {
+						e1.printStackTrace();
 						JOptionPane.showMessageDialog(instance, "Une erreur est survenue.\nL'url semble incorrecte", "Erreur", JOptionPane.ERROR_MESSAGE);
 						return;
 					}
