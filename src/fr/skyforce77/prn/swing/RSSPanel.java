@@ -92,7 +92,7 @@ public class RSSPanel extends JPanel{
 						((CopyOnWriteArrayList<RSSEntry>)DataBase.getValue("feeds")).add(entry);
 						DataBase.save();
 						JOptionPane.showMessageDialog(instance, feed.getHeader().getTitle()+" added", "Add", JOptionPane.INFORMATION_MESSAGE);
-						PRN.notify(new FeedItemInfo(feed, item));
+						PRN.server.show(new FeedItemInfo(feed, item));
 					} catch(Exception e1) {
 						JOptionPane.showMessageDialog(instance, "Une erreur est survenue.\nL'url semble incorrecte", "Erreur", JOptionPane.ERROR_MESSAGE);
 						return;

@@ -1,6 +1,6 @@
 package fr.skyforce77.prn.server;
 
-import fr.skyforce77.prn.notify.Notification;
+import fr.skyforce77.prn.rss.FeedItemInfo;
 
 public class LinuxServer extends PRNServer {
 	
@@ -9,8 +9,9 @@ public class LinuxServer extends PRNServer {
 	}
 	
 	@Override
-	public void show(Notification notif) {
-		System.out.println("[Item: "+notif.getTitle()+"] "+notif.getText());
+	public void show(FeedItemInfo itemi) {
+		System.out.println("["+itemi.getFeed().getHeader().getName()+"] "+
+				itemi.getItem().getTitle()+"\n"+itemi.getItem().getDescriptionAsText());
 	}
 	
 	@Override

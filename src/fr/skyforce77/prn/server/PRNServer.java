@@ -10,7 +10,6 @@ import java.util.Date;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import fr.skyforce77.prn.PRN;
-import fr.skyforce77.prn.notify.Notification;
 import fr.skyforce77.prn.rss.FeedItemInfo;
 import fr.skyforce77.prn.save.DataBase;
 import fr.skyforce77.prn.save.RSSEntry;
@@ -39,6 +38,8 @@ public class PRNServer {
 								FeedItem item = feed.getItem(i);
 								FeedItemInfo itemi = new FeedItemInfo(feed, item);
 								if(lastupdate > itemi.getPubDate().getTime()) {
+									if(PRN.dev)
+										torender.add(itemi);
 									i = items;
 								} else {
 									torender.add(itemi);
@@ -48,8 +49,7 @@ public class PRNServer {
 							DataBase.setValue(entry.getURL(), new Date().getTime());
 							DataBase.save();
 						} catch (Exception e) {
-							System.err.println("Error occurred trying to update "+entry.getName()+" feed");
-							//e.printStackTrace();
+							e.printStackTrace();
 						}
 					}
 					setIcon("rss");
@@ -70,7 +70,7 @@ public class PRNServer {
 				while(!Thread.interrupted()) {
 					if(torender.size() > 0 && torender.get(0) != null) {
 						setIcon("rss-notify");
-						PRN.notify(torender.get(0));
+						PRN.server.show(torender.get(0));
 						torender.remove(0);
 						if(!(torender.size() > 0))
 							setIcon("rss");
@@ -92,6 +92,6 @@ public class PRNServer {
 	}
 	public void setIcon(String ico) {}
 	
-	public void show(Notification notif) {}
+	public void show(FeedItemInfo itemi) {}
 	
 }
