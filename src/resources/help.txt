@@ -2,5 +2,7 @@ Use : poor-rss-notifier [OPTION...]
 
   -g, --gtk                  use Gnome toolkit (SystemTray)
   -l, --libnotify            use Libnotify to display notifications
+  -h, --help                 display help
+  -s, --settings             display application settings menu
   -w, --windows              use only AWT and Swing libraries
 

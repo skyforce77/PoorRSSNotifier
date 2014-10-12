@@ -35,12 +35,16 @@ public class PRN {
 			DataBase.setValue("feeds", entries);
 		}
 
-		initServer(args);
+		String command = Arrays.toString(args).toLowerCase();
+		initServer(command, args);
 		frame = new SettingsFrame();
+		
+		if(command.contains("--settings") || command.contains("-s")) {
+			frame.setVisible(true);
+		}
 	}
 
-	public static void initServer(String[] args) {
-		String command = Arrays.toString(args).toLowerCase();
+	public static void initServer(String command, String[] args) {
 		if(command.contains("--help") || command.contains("-h")) {
 			BufferedReader in = new BufferedReader(new InputStreamReader(PRN.class.getResourceAsStream("/resources/help.txt")));
 			try {
